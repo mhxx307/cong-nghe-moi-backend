@@ -10,9 +10,11 @@
     "author": "Nhom 7",
     "license": "ISC",
     "dependencies": {
+        "argon2": "^0.31.2",
         "cors": "^2.8.5",
         "dotenv": "^16.3.2",
-        "express": "^4.18.2"
+        "express": "^4.18.2",
+        "mongoose": "^8.1.0"
     },
     "devDependencies": {
         "nodemon": "^3.0.3"
