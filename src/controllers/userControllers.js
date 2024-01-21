@@ -4,12 +4,12 @@ const argon2 = require('argon2');
 const userControllers = {
     getAllUsers: async (req, res) => {
         const users = await User.find();
-        res.send(users);
+        res.status(200).json(users);
     },
     getUserById: async (req, res) => {
         const { id } = req.params;
         const user = await User.findById(id);
-        res.send(user);
+        res.status(200).json(user);
     },
     register: async (req, res) => {
         try {
@@ -20,30 +20,33 @@ const userControllers = {
                 password: hash,
                 email,
             });
-            await newUser.save();
-            res.send('Register success!');
+            const userCreated = await newUser.save();
+            res.status(200).json(userCreated);
         } catch (err) {
             console.log(err);
         }
     },
     login: async (req, res) => {
         try {
-            const { username, password } = req.body;
-            const user = await User.findOne({ username });
+            const user = await User.findOne({ username: req.body.username });
             if (!user) {
-                res.send('User not found!');
+                return res.status(404).json('User not found');
             }
-            const validPassword = await argon2.verify(user.password, password);
+
+            const validPassword = await argon2.verify(
+                user.password,
+                req.body.password,
+            );
+
             if (!validPassword) {
-                res.send('Wrong password!');
+                return res.status(400).json('Wrong password');
             }
-            // return user created
-            res.send({
-                user: user,
-                message: 'Login success!',
-            });
-        } catch (err) {
-            console.log(err);
+
+            const { password, ...others } = user._doc;
+
+            res.status(200).json(others);
+        } catch (error) {
+            res.status(500).json(error.message);
         }
     },
     updateUserById: async (req, res) => {
