@@ -46,6 +46,21 @@ const userControllers = {
             console.log(err);
         }
     },
+    updateUserById: async (req, res) => {
+        try {
+            const { id } = req.params;
+            const { username, password, email } = req.body;
+            const hash = await argon2.hash(password);
+            const user = await User.findByIdAndUpdate(id, {
+                username,
+                password: hash,
+                email,
+            });
+            res.send(user);
+        } catch (err) {
+            console.log(err);
+        }
+    },
 };
 
 module.exports = userControllers;
