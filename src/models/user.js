@@ -20,6 +20,10 @@ const UserSchema = new mongoose.Schema({
         type: String,
         default: "",
     },
+    verify: {
+        type: Boolean,
+        default: false,
+    },
 }, { timestamps: true });
 
 // UserSchema.methods.createResetPasswordToken = () => {
