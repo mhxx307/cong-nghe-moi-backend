@@ -128,30 +128,18 @@ const userControllers = {
         }
     },
     resetPassword: async (req, res, next) => {
-        const { email, otp, newPassword } = req.body;
+        const { userId, newPassword } = req.body;
+        console.log(newPassword);
 
         try {
-            const user = await User.findOne({ email });
+            const user = await User.findById(userId);
 
             if (!user) {
                 return res.status(404).json({ message: 'User not found' });
             }
 
-            const isValidOTP = speakeasy.totp.verify({
-                secret: user.otpSecret,
-                encoding: 'base32',
-                token: otp,
-            });
-
-            if (!isValidOTP) {
-                return res.status(400).json({ message: 'Invalid OTP' });
-            }
-
             const hashedPassword = await argon2.hash(newPassword, 10);
-            await User.updateOne(
-                { email },
-                { password: hashedPassword, otpSecret: null },
-            );
+            await User.updateOne({ _id: userId }, { password: hashedPassword });
 
             res.status(200).json({ message: 'Password reset successful' });
         } catch (error) {
