@@ -33,20 +33,31 @@ const userControllers = {
             const hash = await argon2.hash(password);
 
             if (username == '' || email == '' || password == '') {
-                res.status(200).json('input required');
+                res.status(400).json({
+                    message: 'All fields are required',
+                });
             } else if (!/[a-zA-Z ]*$/.test(username)) {
-                res.status(200).json('username failed');
+                res.status(400).json({
+                    message:
+                        "Username can't contain special characters or numbers",
+                });
             } else if (!/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) {
-                res.status(200).json('email failed');
+                res.status(400).json({
+                    message: 'Invalid email format',
+                });
             } else if (password.length < 8) {
-                res.status(200).json('password failed');
+                res.status(400).json({
+                    message: 'Password must be at least 8 characters',
+                });
             }
 
             try {
                 const result = await User.findOne({ email });
 
                 if (result) {
-                    res.status(200).json('Email already exists');
+                    res.status(400).json({
+                        message: 'Email already exists',
+                    });
                 } else {
                     const newUser = new User({
                         username,
@@ -68,7 +79,15 @@ const userControllers = {
         try {
             const user = await User.findOne({ email: req.body.email });
             if (!user) {
-                return res.status(404).json('User not found');
+                return res.status(404).json({
+                    message: 'User not found',
+                });
+            }
+
+            if (!user.verify) {
+                return res.status(400).json({
+                    message: 'User not verified',
+                });
             }
 
             const validPassword = await argon2.verify(
@@ -77,12 +96,17 @@ const userControllers = {
             );
 
             if (!validPassword) {
-                return res.status(400).json('Wrong password');
+                return res.status(400).json({
+                    message: 'Wrong password',
+                });
             }
 
             const { password, ...others } = user._doc;
 
-            res.status(200).json(others);
+            res.status(200).json({
+                message: 'Login successful',
+                user: others,
+            });
         } catch (error) {
             res.status(500).json(error.message);
         }
@@ -98,8 +122,6 @@ const userControllers = {
             }
 
             await sendOtp(user, res);
-
-            res.status(200).json({ message: 'OTP sent successfully' });
         } catch (error) {
             console.error(error);
             res.status(500).json({ message: 'Internal Server Error' });
@@ -144,7 +166,7 @@ const userControllers = {
                 throw Error('userId and otp are required');
             } else {
                 const userOtpRecords = await UserOtp.find({
-                    userId
+                    userId,
                 });
                 if (userOtpRecords.length <= 0) {
                     throw Error('OTP not found');
@@ -160,18 +182,21 @@ const userControllers = {
                             status: 'EXPIRED',
                             message: 'OTP expired',
                         });
-                    //
+                        //
                     } else {
                         const validOTP = await argon2.verify(hashOTP, otp);
 
                         console.log(validOTP);
                         if (validOTP) {
-                            await User.updateOne({ _id: userId }, { verify: true });
+                            await User.updateOne(
+                                { _id: userId },
+                                { verify: true },
+                            );
                             await UserOtp.deleteMany({ userId });
                             res.json({
                                 status: 'SUCCESS',
                                 message: 'OTP verified successfully',
-                            })
+                            });
                         } else {
                             throw Error('Invalid OTP');
                         }
@@ -186,13 +211,12 @@ const userControllers = {
     resendOtp: async (req, res) => {
         try {
             const { userId, email } = req.body;
-            
 
             if (!userId || !email) {
                 throw Error('User not found');
             } else {
                 await UserOtp.deleteMany({ userId });
-                sendOtp({_id: userId, email}, res);
+                sendOtp({ _id: userId, email }, res);
             }
         } catch (err) {
             console.log(err);
@@ -232,15 +256,10 @@ const sendOtp = async (user, res) => {
                 userId: user._id,
                 email: user.email,
             },
-
         });
-
-    }
-    catch (err) {
+    } catch (err) {
         console.log(err);
     }
-}
-
-
+};
 
 module.exports = userControllers;
