@@ -58,6 +58,88 @@ const chatControllers = {
             return res.status(500).json({ error: 'Internal Server Error' });
         }
     },
+    getAllChatRooms: async (req, res) => {
+        try {
+            const { userId } = req.params;
+
+            // Find all groups where the user is a member
+            const groups = await Group.find({ members: userId });
+
+            // Find all 1v1 chats where the user is the sender or receiver
+            const chats = await Chat.find({
+                $or: [{ sender: userId }, { receiver: userId }],
+            });
+
+            return res.status(200).json({ groups, chats });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+    },
+    getAllExistingChats: async (req, res) => {
+        try {
+            const { userId } = req.params;
+
+            // Find all 1v1 chats where the user is the sender or receiver
+            const chats = await Chat.find({
+                $or: [{ sender: userId }, { receiver: userId }],
+            });
+
+            // find receiver and sender details
+            const chatDetails = await Promise.all(
+                chats.map(async (chat) => {
+                    const receiver = await User.findById(chat.receiver);
+                    const sender = await User.findById(chat.sender);
+                    return {
+                        ...chat._doc,
+                        receiver,
+                        sender,
+                    };
+                }),
+            );
+
+            return res.status(200).json(chatDetails);
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+    },
+    getChatMessages: async (req, res) => {
+        try {
+            const { senderId, receiverId } = req.query;
+
+            // Find all 1v1 chats where the user is the sender or receiver
+            const messages = await Chat.find({
+                $or: [
+                    { sender: senderId, receiver: receiverId },
+                    { sender: receiverId, receiver: senderId },
+                ],
+            });
+
+            // find receiver and sender details
+            const chatDetails = await Promise.all(
+                messages.map(async (message) => {
+                    const receiver = await User.findById(message.receiver);
+                    const sender = await User.findById(message.sender);
+                    const { password: receiverPassword, ...restReceiver } =
+                        receiver._doc;
+                    const { password: senderPassword, ...restSender } =
+                        sender._doc;
+
+                    return {
+                        ...message._doc,
+                        receiver: restReceiver,
+                        sender: restSender,
+                    };
+                }),
+            );
+
+            return res.status(200).json(chatDetails);
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+    },
 };
 
 module.exports = chatControllers;
