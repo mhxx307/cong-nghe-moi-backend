@@ -52,7 +52,11 @@ const chatControllers = {
             // Save the chat to the database
             await newChat.save();
 
-            return res.status(201).json(newChat);
+            return res.status(201).json({
+                ...newChat._doc,
+                receiver,
+                sender,
+            });
         } catch (error) {
             console.error(error);
             return res.status(500).json({ error: 'Internal Server Error' });
@@ -98,7 +102,23 @@ const chatControllers = {
                 }),
             );
 
-            return res.status(200).json(chatDetails);
+            // filter out duplicate chats
+            const filteredChatDetails = chatDetails.filter(
+                (chat, index, self) => {
+                    const receiverId = chat.receiver._id;
+                    const senderId = chat.sender._id;
+                    const receiverIndex = self.findIndex(
+                        (c) =>
+                            c.receiver._id.toString() === receiverId.toString(),
+                    );
+                    const senderIndex = self.findIndex(
+                        (c) => c.sender._id.toString() === senderId.toString(),
+                    );
+                    return receiverIndex === index || senderIndex === index;
+                },
+            );
+
+            return res.status(200).json(filteredChatDetails);
         } catch (error) {
             console.error(error);
             return res.status(500).json({ error: 'Internal Server Error' });
