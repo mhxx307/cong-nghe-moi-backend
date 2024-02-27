@@ -26,6 +26,21 @@ const userControllers = {
             console.log(err);
         }
     },
+    getUsersByNameAndPhoneNumber: async (req, res) => {
+        try {
+            const { searchTerm } = req.query;
+            const users = await User.find({
+                $or: [
+                    { username: { $regex: searchTerm, $options: 'i' } },
+                    { phoneNumber: { $regex: searchTerm, $options: 'i' } },
+                ],
+            });
+            res.status(200).json(users);
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({ message: error.message });
+        }
+    },
 };
 
 module.exports = userControllers;
