@@ -14,13 +14,16 @@ const userControllers = {
     updateUserById: async (req, res) => {
         try {
             const { id } = req.params;
-            const { username, password, email } = req.body;
-            const hash = await argon2.hash(password);
+            const { username, email, 
+                profilePic,
+            } = req.body;
+
             const user = await User.findByIdAndUpdate(id, {
                 username,
-                password: hash,
                 email,
+                profilePic,
             });
+
             res.send(user);
         } catch (err) {
             console.log(err);
