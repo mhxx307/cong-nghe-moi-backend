@@ -1,30 +1,10 @@
+const sendEmail = require('../configs/sendEmail');
 const User = require('../models/user');
 const UserOtp = require('../models/userotp');
 const userOtp = require('../models/userotp');
 const argon2 = require('argon2');
 var speakeasy = require('speakeasy');
-const nodemailer = require('nodemailer');
 
-// let transporter = nodemailer.createTransport({
-//     host: 'stmp-mail.outlook.com',
-//     auth: {
-//         user: process.env.EMAIL,
-//         pass: process.env.PASSWORD,
-//     },
-// });
-
-const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, // true for 465, false for other ports
-    auth: {
-        user: 'secondchancemarketvn@gmail.com', // generated ethereal user
-        pass: 'oiwnlzuitfrtukut', // generated ethereal password
-    },
-    // tls: {
-    //     rejectUnauthorized: false, // avoid NodeJs self signed certificate error
-    // },
-});
 
 const userControllers = {
     register: async (req, res) => {
@@ -218,12 +198,7 @@ const sendOtp = async (user, res) => {
         console.log(user);
         const otp = `${Math.floor(100000 + Math.random() * 900000)}`;
 
-        const mailOptions = {
-            from: 'MinhHoang',
-            to: user.email,
-            subject: 'OTP for your account',
-            text: `Your OTP is ${otp}`,
-        };
+        
 
         const saltRounds = 10;
 
@@ -236,7 +211,12 @@ const sendOtp = async (user, res) => {
         });
 
         await newUserOTP.save();
-        await transporter.sendMail(mailOptions);
+        await sendEmail(
+            user.email,
+            'OTP Verification',
+            `Your OTP is ${otp}`,
+        );
+        
         res.json({
             status: 'PENDING',
             message: 'OTP sent successfully',
