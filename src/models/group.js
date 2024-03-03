@@ -3,6 +3,10 @@ const mongoose = require('mongoose');
 const groupSchema = new mongoose.Schema({
   name: { type: String, required: true, unique: true },
   members: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  profilePic: {
+    type: String,
+    default: '',
+  },
   // Add other group-related fields as needed
 });
 

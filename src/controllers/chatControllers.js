@@ -20,11 +20,22 @@ const chatControllers = {
                 name,
                 members,
             });
-
             // Save the group to the database
             await newGroup.save();
 
-            return res.status(201).json(newGroup);
+            // create a new chat for the group
+            const newChat = new Chat({
+                group: newGroup._id,
+                message: 'Welcome to the group!',
+                sender: members[0],
+            });
+            // Save the chat to the database
+            await newChat.save();
+
+            return res.status(201).json({
+                group: newGroup,
+                chat: newChat,
+            });
         } catch (error) {
             console.error(error);
             return res.status(500).json({ error: 'Internal Server Error' });
@@ -89,34 +100,79 @@ const chatControllers = {
                 $or: [{ sender: userId }, { receiver: userId }],
             });
 
-            // find receiver and sender details
+            // find group where the user is a member & find chat where the group is the group
+            const groups = await Group.find({ members: userId });
+            const groupChats = await Promise.all(
+                groups.map(async (group) => {
+                    const chat = await Chat.findOne({ group: group._id });
+                    return chat;
+                }),
+            );
+
+            // merge 1v1 chats and group chats
+            const allChats = [...chats, ...groupChats];
+
+            // find receiver, group and sender details
             const chatDetails = await Promise.all(
-                chats.map(async (chat) => {
+                allChats.map(async (chat) => {
+                    if (chat.group) {
+                        const group = await Group.findById(chat.group);
+                        const sender = await User.findById(chat.sender);
+                        const { password: senderPassword, ...restSender } =
+                            sender._doc;
+                        // details of the members of the group
+                        const members = await Promise.all(
+                            group.members.map(async (memberId) => {
+                                const member = await User.findById(memberId);
+                                const { password: memberPassword, ...restMember } =
+                                    member._doc;
+                                return restMember;
+                            }
+                            ),
+                        );
+
+                        return {
+                            ...chat._doc,
+                            group,
+                            sender: restSender,
+                            members,
+                        };
+                    }
+
                     const receiver = await User.findById(chat.receiver);
                     const sender = await User.findById(chat.sender);
+                    const { password: receiverPassword, ...restReceiver } =
+                        receiver._doc;
+                    const { password: senderPassword, ...restSender } = sender._doc;
+
                     return {
                         ...chat._doc,
-                        receiver,
-                        sender,
+                        receiver: restReceiver,
+                        sender: restSender,
                     };
                 }),
             );
 
             // filter out duplicate chats
-            const filteredChatDetails = chatDetails.filter(
-                (chat, index, self) => {
-                    const receiverId = chat.receiver._id;
-                    const senderId = chat.sender._id;
-                    const receiverIndex = self.findIndex(
-                        (c) =>
-                            c.receiver._id.toString() === receiverId.toString(),
-                    );
-                    const senderIndex = self.findIndex(
-                        (c) => c.sender._id.toString() === senderId.toString(),
-                    );
-                    return receiverIndex === index || senderIndex === index;
-                },
-            );
+            const filteredChatDetails = chatDetails.filter((chat, index, self) => {
+                const receiverId = chat.receiver?._id;
+                const senderId = chat.sender?._id;
+                const group = chat.group?._id;
+                const receiverIndex = self.findIndex(
+                    (c) => c.receiver?._id?.toString() === receiverId?.toString(),
+                );
+                const senderIndex = self.findIndex(
+                    (c) => c.sender?._id?.toString() === senderId?.toString(),
+                );
+                const groupIndex = self.findIndex(
+                    (c) => c.group?._id?.toString() === group?.toString(),
+                );
+                return (
+                    receiverIndex === index ||
+                    senderIndex === index ||
+                    groupIndex === index
+                );
+            });
 
             return res.status(200).json(filteredChatDetails);
         } catch (error) {
@@ -126,15 +182,21 @@ const chatControllers = {
     },
     getChatMessages: async (req, res) => {
         try {
-            const { senderId, receiverId } = req.query;
+            const { senderId, receiverId, groupId } = req.query;
 
-            // Find all 1v1 chats where the user is the sender or receiver
-            const messages = await Chat.find({
-                $or: [
-                    { sender: senderId, receiver: receiverId },
-                    { sender: receiverId, receiver: senderId },
-                ],
-            });
+            // Find all chats
+            let messages;
+            if (groupId) {
+                messages = await Chat.find({ group: groupId });
+            }
+            if (senderId && receiverId) {
+                messages = await Chat.find({
+                    $or: [
+                        { sender: senderId, receiver: receiverId },
+                        { sender: receiverId, receiver: senderId },
+                    ],
+                });
+            }
 
             // find receiver and sender details
             const chatDetails = await Promise.all(
@@ -160,6 +222,143 @@ const chatControllers = {
             return res.status(500).json({ error: 'Internal Server Error' });
         }
     },
+    startGroupChat: async (req, res) => {
+        try {
+            const { groupId, message, senderId } = req.body;
+
+            // Check if the group exists
+            const group = await Group.findById(groupId);
+            if (!group) {
+                return res.status(404).json({ error: 'Group not found' });
+            }
+
+            // Check if the user is a member of the group
+            if (!group.members.includes(senderId)) {
+                return res.status(403).json({ error: 'Forbidden' });
+            }
+
+            // Create a new chat for the group
+            const newChat = new Chat({
+                group: groupId,
+                message,
+                sender: senderId,
+            });
+
+            // Save the chat to the database
+            const newChatSaved = await newChat.save();
+
+            // get details
+            const sender = await User.findById(senderId);
+            const { password: senderPassword, ...restSender } = sender._doc;
+            const members = await Promise.all(
+                group.members.map(async (memberId) => {
+                    const member = await User.findById
+                    (memberId);
+                    const { password: memberPassword, ...restMember } =
+                        member._doc;
+                    return restMember;
+                }
+                ),
+            );
+
+            const chatDetails = {
+                ...newChatSaved._doc,
+                group,
+                sender: restSender,
+                members,
+            };
+
+            return res.status(201).json(chatDetails);
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        } 
+    },
+    updateGroup: async (req, res) => {
+        try {
+            const { groupId } = req.params;
+            const {  name, members } = req.body;
+
+            // Check if the group exists
+            const group = await Group.findById(groupId);
+            if (!group) {
+                return res.status(404).json({ error: 'Group not found' });
+            }
+
+            // Update the group
+            group.name = name;
+            group.members = members;
+            await group.save();
+
+            return res.status(200).json(group);
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+    },
+    deleteGroup: async (req, res) => {
+        try {
+            const { groupId } = req.params;
+
+            // Check if the group exists
+            const group = await Group.findById(groupId);
+            if (!group) {
+                return res.status(404).json({ error: 'Group not found' });
+            }
+
+            // Delete the group
+            await Group.findByIdAndDelete(groupId);
+
+            return res.status(204).json();
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+    },
+    getGroupChatMessages: async (req, res) => {
+        try {
+            const groupId = req.params.groupId;
+
+            // Find all chats
+            console.log("groupId", groupId); // undefined
+            const messages = await Chat.find({ group: groupId });
+
+            console.log("messages", messages);
+
+            // find group and sender details
+            const chatDetails = await Promise.all(
+                messages.map(async (message) => {
+                    const group = await Group.findById(message.group);
+                    const sender = await User.findById(message.sender);
+                    const { password: senderPassword, ...restSender } =
+                        sender._doc;
+                    // details of the members of the group
+                    const members = await Promise.all(
+                        group.members.map(async (memberId) => {
+                            const member = await User.findById(memberId);
+                            const { password: memberPassword, ...restMember } =
+                                member._doc;
+                            return restMember;
+                        }
+                        ),
+                    );
+
+                    return {
+                        ...message._doc,
+                        group,
+                        sender: restSender,
+                        members,
+                    };
+                }),
+            );
+
+            return res.status(200).json(chatDetails);
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+    }
+        
 };
 
 module.exports = chatControllers;
