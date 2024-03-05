@@ -32,10 +32,17 @@ const chatControllers = {
             // Save the chat to the database
             await newChat.save();
 
-            return res.status(201).json({
+            // new chat details
+            const sender = await User.findById(members[0]);
+            const { password: senderPassword, ...restSender } = sender._doc;
+            const chatDetails = {
+                ...newChat._doc,
                 group: newGroup,
-                chat: newChat,
-            });
+                sender: restSender,
+                members,
+            };
+
+            return res.status(201).json(chatDetails);
         } catch (error) {
             console.error(error);
             return res.status(500).json({ error: 'Internal Server Error' });
@@ -174,7 +181,31 @@ const chatControllers = {
                 );
             });
 
-            return res.status(200).json(filteredChatDetails);
+            // remove duplicate chat group - same group id
+            const chatListWithoutGroups = filteredChatDetails.filter(
+                (chat) => !chat.group,
+            );       
+
+            const chatListWithGroups = filteredChatDetails.filter(
+                (chat) => chat.group,
+            );        
+
+            const uniqueChatList = chatListWithGroups.filter(
+                (chat, index, self) =>
+                    index ===
+                    self.findIndex(
+                        (c) => c.group._id === chat.group._id,
+                    ),
+            );       
+
+            const finalChatList = [...chatListWithoutGroups, ...uniqueChatList];     
+            
+             // Extracting the latest message and putting it at the beginning
+            // const latestMessageIndex = finalChatList.findIndex(chat => chat.timestamp === Math.max(...finalChatList.map(chat => chat.timestamp)));
+            // const latestMessage = finalChatList.splice(latestMessageIndex, 1);
+            // const sortedChatList = [...latestMessage, ...finalChatList];
+
+            return res.status(200).json(finalChatList);
         } catch (error) {
             console.error(error);
             return res.status(500).json({ error: 'Internal Server Error' });

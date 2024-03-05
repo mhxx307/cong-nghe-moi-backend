@@ -29,7 +29,6 @@ io.on('connection', (socket) => {
 
     socket.on('messageChatGroup', (data) => {
         console.log('Received message:', data);
-        // socket.emit('newChatGroup', data);
         socket.broadcast.emit('newChatGroup', data);
     });
 });
