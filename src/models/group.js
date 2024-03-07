@@ -7,6 +7,7 @@ const groupSchema = new mongoose.Schema({
     type: String,
     default: '',
   },
+  leader: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   // Add other group-related fields as needed
 });
 

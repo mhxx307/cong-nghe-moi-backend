@@ -5,20 +5,21 @@ const User = require('../models/user.js');
 const chatControllers = {
     createGroup: async (req, res) => {
         try {
-            const { name, members } = req.body;
+            const { name, members, senderId } = req.body;
 
             // Check if the group name is unique
-            const existingGroup = await Group.findOne({ name });
-            if (existingGroup) {
-                return res
-                    .status(400)
-                    .json({ error: 'Group name already exists' });
-            }
+            // const existingGroup = await Group.findOne({ name });
+            // if (existingGroup) {
+            //     return res
+            //         .status(400)
+            //         .json({ error: 'Group name already exists' });
+            // }
 
             // Create a new group
             const newGroup = new Group({
                 name,
                 members,
+                leader: senderId,
             });
             // Save the group to the database
             await newGroup.save();
@@ -27,13 +28,13 @@ const chatControllers = {
             const newChat = new Chat({
                 group: newGroup._id,
                 message: 'Welcome to the group!',
-                sender: members[0],
+                sender: senderId,
             });
             // Save the chat to the database
             await newChat.save();
 
             // new chat details
-            const sender = await User.findById(members[0]);
+            const sender = await User.findById(senderId);
             const { password: senderPassword, ...restSender } = sender._doc;
             const chatDetails = {
                 ...newChat._doc,
