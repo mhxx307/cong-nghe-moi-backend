@@ -19,7 +19,7 @@ const chatControllers = {
             const newGroup = new Group({
                 name,
                 members,
-                leader: senderId,
+                admin: senderId,
             });
             // Save the group to the database
             await newGroup.save();
@@ -309,7 +309,7 @@ const chatControllers = {
     updateGroup: async (req, res) => {
         try {
             const { groupId } = req.params;
-            const {  name, members } = req.body;
+            const {  name, members, profilePic } = req.body;
 
             // Check if the group exists
             const group = await Group.findById(groupId);
@@ -320,6 +320,7 @@ const chatControllers = {
             // Update the group
             group.name = name;
             group.members = members;
+            group.profilePic = profilePic;
             await group.save();
 
             return res.status(200).json(group);
