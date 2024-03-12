@@ -342,6 +342,11 @@ const chatControllers = {
             // Delete the group
             await Group.findByIdAndDelete(groupId);
 
+            // Delete all chats of the group
+            await Chat.deleteMany({
+                group: groupId,
+            });
+
             return res.status(204).json();
         } catch (error) {
             console.error(error);
