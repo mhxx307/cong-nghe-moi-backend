@@ -37,7 +37,7 @@ io.on('connection', (socket) => {
         socket.broadcast.emit('removeGroup', data);
     });
 
-    socket.on('updateGroup', (data) => {
+    socket.on('updatedGroup', (data) => {
         console.log('Received update group:', data);
         socket.broadcast.emit('updatedGroup', data);
     });
