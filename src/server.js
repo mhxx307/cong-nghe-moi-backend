@@ -32,14 +32,14 @@ io.on('connection', (socket) => {
         socket.broadcast.emit('newChatGroup', data);
     });
 
-    socket.on('leaveGroup', (data) => {
-        console.log('Received leave group:', data);
-        socket.broadcast.emit('removeGroup', data);
+    socket.on('leaveGroup', (groupId) => {
+        console.log('User left group:', groupId);
+        socket.broadcast.emit('removeGroup', groupId);
     });
 
-    socket.on('updatedGroup', (data) => {
-        console.log('Received update group:', data);
-        socket.broadcast.emit('updatedGroup', data);
+    socket.on('addMembers', (data) => {
+        console.log('New members added:', data);
+        socket.broadcast.emit('updateMembers', data);
     });
 });
 
