@@ -31,6 +31,16 @@ io.on('connection', (socket) => {
         console.log('Received message:', data);
         socket.broadcast.emit('newChatGroup', data);
     });
+
+    socket.on('leaveGroup', (groupId) => {
+        console.log('User left group:', groupId);
+        socket.broadcast.emit('removeGroup', groupId);
+    });
+
+    socket.on('addMembers', (data) => {
+        console.log('New members added:', data);
+        socket.broadcast.emit('updateMembers', data);
+    });
 });
 
 initRouter(app);
