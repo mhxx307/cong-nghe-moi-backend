@@ -25,6 +25,26 @@ io.on('connection', (socket) => {
         console.log('Received message:', data);
         socket.broadcast.emit('receive-message', data);
     });
+
+    socket.on('create-room', (data) => {
+        console.log('Received create room event:', data);
+        socket.broadcast.emit('created-room', data);
+    });
+
+    socket.on('send-friend-request', (data) => {
+        console.log('Received friend request:', data);
+        socket.broadcast.emit('received-friend-request', data);
+    });
+
+    socket.on('accept-friend-request', (data) => {
+        console.log('Received accept friend request:', data);
+        socket.broadcast.emit('accepted-friend-request', data);
+    });
+
+    socket.on('sort-room', (data) => {
+        console.log('Received sort room event:', data);
+        socket.broadcast.emit('sorted-room', data);
+    });
 });
 
 initRouter(app);

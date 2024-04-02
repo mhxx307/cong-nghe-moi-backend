@@ -75,7 +75,14 @@ const chatControllers = {
             const messages = await Message.find({ room: roomId })
                 .populate('sender', 'username profilePic')
                 .populate('receiver', 'username profilePic')
-                .populate('room', 'members');
+                .populate({
+                    path: 'room',
+                    select: 'members', // Select the 'members' field in the 'room' model
+                    populate: {
+                        path: 'members',
+                        select: 'username profilePic', // Populate the 'members' field in the 'room' model with the 'username' and 'profilePic' fields
+                    },
+                });
 
             console.log('Messages:', messages);
             return res.status(200).json(messages);
@@ -86,10 +93,10 @@ const chatControllers = {
     getAllRoomByUserId: async (req, res) => {
         try {
             const { userId } = req.params;
-            const chatRooms = await Chatroom.find({ members: userId }).populate(
-                'members',
-                'username profilePic',
-            );
+            const chatRooms = await Chatroom.find({ members: userId })
+                .populate('members', 'username profilePic')
+                .sort({ latestMessageAt: -1 });
+
             return res.status(200).json(chatRooms);
         } catch (error) {
             return res.status(500).json({ message: error.message });
@@ -131,36 +138,24 @@ const chatControllers = {
                 .populate('receiver', 'username profilePic')
                 .populate('room', 'members');
 
+            await updateChatroomLastMessage(roomId, messageSaved.timestamp);
+
             return res.status(200).json(populatedMessage);
         } catch (error) {
             return res.status(500).json({ message: error.message });
         }
     },
-    sendMessageToGroup: async (req, res) => {
-        try {
-            const { senderId, roomId, content, images } = req.body;
-            // Check if the sender is a member of the group
-            const chatroom = await Chatroom.findById(roomId);
-            if (!chatroom || !chatroom.members.includes(senderId)) {
-                return res
-                    .status(400)
-                    .json({ message: 'You are not a member of this group' });
-            }
-
-            // Create the message
-            const message = new Message({
-                sender: senderId,
-                room: roomId,
-                content,
-                images,
-            });
-            const savedMessage = await message.save();
-
-            return res.status(200).json(savedMessage);
-        } catch (error) {
-            return res.status(500).json({ message: error.message });
-        }
-    },
 };
+
+async function updateChatroomLastMessage(chatroomId, timestamp) {
+    try {
+        // update the lastMessageAt field in the chatroom
+        const chatroom = await Chatroom.findById(chatroomId);
+        chatroom.latestMessageAt = timestamp;
+        await chatroom.save();
+    } catch (error) {
+        throw new Error(error.message);
+    }
+}
 
 module.exports = chatControllers;

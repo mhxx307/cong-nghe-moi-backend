@@ -56,7 +56,11 @@ const userControllers = {
     },
     login: async (req, res) => {
         try {
-            const user = await User.findOne({ email: req.body.email });
+            const user = await User.findOne({ email: req.body.email })
+                .populate('friendRequestsReceived', 'username profilePic')
+                .populate('friendRequests', 'username profilePic')
+                .populate('friends', 'username profilePic');
+
             if (!user) {
                 return res.status(404).json({
                     message: 'User not found',

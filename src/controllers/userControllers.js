@@ -5,12 +5,19 @@ const { NOTIFICATION_TYPES } = require('../constants/enum');
 
 const userControllers = {
     getAllUsers: async (req, res) => {
-        const users = await User.find();
+        const users = await User.find()
+            .populate('friends', 'username profilePic')
+            .populate('friendRequests', 'username profilePic')
+            .populate('friendRequestsReceived', 'username profilePic');
         res.status(200).json(users);
     },
     getUserById: async (req, res) => {
         const { id } = req.params;
-        const user = await User.findById(id);
+        const user = await User.findById(id)
+            .populate('friends', 'username profilePic')
+            .populate('friendRequests', 'username profilePic')
+            .populate('friendRequestsReceived', 'username profilePic');
+        console.log('user', user);
         res.status(200).json(user);
     },
     updateUserById: async (req, res) => {
@@ -77,6 +84,9 @@ const userControllers = {
             const { senderId, receiverId } = req.body;
             const sender = await User.findById(senderId);
             const receiver = await User.findById(receiverId);
+
+            console.log('Sender:', sender);
+            console.log('Receiver:', receiver);
 
             if (!sender || !receiver) {
                 throw new Error('Sender or receiver not found');

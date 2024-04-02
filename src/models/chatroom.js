@@ -19,6 +19,13 @@ const chatroomSchema = new mongoose.Schema({
     image: {
         type: String,
     },
+    createAt: {
+        type: Date,
+        default: Date.now,
+    },
+    latestMessageAt: {
+        type: Date,
+    },
 });
 
 module.exports = mongoose.model('Chatroom', chatroomSchema);
