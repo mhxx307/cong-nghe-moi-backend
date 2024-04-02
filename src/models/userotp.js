@@ -1,4 +1,4 @@
-const  mongoose = require("mongoose");
+const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const userOtpSchema = new Schema({
@@ -23,6 +23,6 @@ const userOtpSchema = new Schema({
     },
 });
 
-const UserOtp = mongoose.model("UserOtp", userOtpSchema);
+const UserOtp = mongoose.model('UserOtp', userOtpSchema);
 
-module.exports = UserOtp;  
+module.exports = UserOtp;

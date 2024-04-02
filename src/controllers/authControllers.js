@@ -5,7 +5,6 @@ const userOtp = require('../models/userotp');
 const argon2 = require('argon2');
 var speakeasy = require('speakeasy');
 
-
 const userControllers = {
     register: async (req, res) => {
         try {
@@ -198,8 +197,6 @@ const sendOtp = async (user, res) => {
         console.log(user);
         const otp = `${Math.floor(100000 + Math.random() * 900000)}`;
 
-        
-
         const saltRounds = 10;
 
         const hashOTP = await argon2.hash(otp, saltRounds);
@@ -211,12 +208,8 @@ const sendOtp = async (user, res) => {
         });
 
         await newUserOTP.save();
-        await sendEmail(
-            user.email,
-            'OTP Verification',
-            `Your OTP is ${otp}`,
-        );
-        
+        await sendEmail(user.email, 'OTP Verification', `Your OTP is ${otp}`);
+
         res.json({
             status: 'PENDING',
             message: 'OTP sent successfully',
