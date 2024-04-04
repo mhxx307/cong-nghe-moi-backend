@@ -16,6 +16,5 @@
     "trailingComma": "all",
     "useTabs": false,
     "vueIndentScriptAndStyle": false,
-    "endOfLine": "auto",
-    "plugins": ["prettier-plugin-tailwindcss"]
+    "endOfLine": "auto"
 }

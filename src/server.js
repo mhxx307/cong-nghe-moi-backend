@@ -21,25 +21,29 @@ io.on('connection', (socket) => {
     console.log('A user connected: ', socket.id);
     // Additional socket event listeners and handling can be added here
 
-    socket.on('message', (data) => {
+    socket.on('send-message', (data) => {
         console.log('Received message:', data);
-        // socket.emit('newChat', data);
-        socket.broadcast.emit('newChat', data);
+        socket.broadcast.emit('receive-message', data);
     });
 
-    socket.on('messageChatGroup', (data) => {
-        console.log('Received message:', data);
-        socket.broadcast.emit('newChatGroup', data);
+    socket.on('create-room', (data) => {
+        console.log('Received create room event:', data);
+        socket.broadcast.emit('created-room', data);
     });
 
-    socket.on('leaveGroup', (groupId) => {
-        console.log('User left group:', groupId);
-        socket.broadcast.emit('removeGroup', groupId);
+    socket.on('send-friend-request', (data) => {
+        console.log('Received friend request:', data);
+        socket.broadcast.emit('received-friend-request', data);
     });
 
-    socket.on('addMembers', (data) => {
-        console.log('New members added:', data);
-        socket.broadcast.emit('updateMembers', data);
+    socket.on('accept-friend-request', (data) => {
+        console.log('Received accept friend request:', data);
+        socket.broadcast.emit('accepted-friend-request', data);
+    });
+
+    socket.on('sort-room', (data) => {
+        console.log('Received sort room event:', data);
+        socket.broadcast.emit('sorted-room', data);
     });
 });
 
