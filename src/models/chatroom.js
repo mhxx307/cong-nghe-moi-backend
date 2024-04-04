@@ -26,6 +26,10 @@ const chatroomSchema = new mongoose.Schema({
     latestMessageAt: {
         type: Date,
     },
+    admin: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+    },
 });
 
 module.exports = mongoose.model('Chatroom', chatroomSchema);

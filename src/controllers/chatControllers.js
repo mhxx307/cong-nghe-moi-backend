@@ -4,7 +4,7 @@ const Message = require('../models/Message');
 const chatControllers = {
     createChatRoom: async (req, res) => {
         try {
-            const { members, type, name, image } = req.body;
+            const { members, type, name, image, admin } = req.body;
 
             if (type === '1v1') {
                 if (members.length !== 2) {
@@ -45,11 +45,14 @@ const chatControllers = {
                     type,
                     name,
                     image,
+                    admin: admin,
                 });
                 const savedChatroom = await chatroom.save();
                 const populatedChatroom = await Chatroom.findById(
                     savedChatroom._id,
-                ).populate('members', 'username profilePic');
+                )
+                    .populate('members', 'username profilePic')
+                    .populate('admin', 'username profilePic');
 
                 return res.status(200).json(populatedChatroom);
             }
@@ -95,6 +98,7 @@ const chatControllers = {
             const { userId } = req.params;
             const chatRooms = await Chatroom.find({ members: userId })
                 .populate('members', 'username profilePic')
+                .populate('admin', 'username profilePic')
                 .sort({ latestMessageAt: -1 });
 
             return res.status(200).json(chatRooms);
