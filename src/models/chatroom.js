@@ -30,6 +30,10 @@ const chatroomSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
     },
+    replyTo: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Message', // Reference to the parent message
+    },
 });
 
 module.exports = mongoose.model('Chatroom', chatroomSchema);

@@ -128,13 +128,15 @@ const chatControllers = {
     },
     sendMessage: async (req, res) => {
         try {
-            const { senderId, receiverId, content, images, roomId } = req.body;
+            const { senderId, receiverId, content, images, roomId, replyTo } =
+                req.body;
             const message = new Message({
                 sender: senderId,
                 receiver: receiverId,
                 content,
                 images,
                 room: roomId,
+                replyTo,
             });
             const messageSaved = await message.save();
             const populatedMessage = await Message.findById(messageSaved._id)
@@ -145,6 +147,19 @@ const chatControllers = {
             await updateChatroomLastMessage(roomId, messageSaved.timestamp);
 
             return res.status(200).json(populatedMessage);
+        } catch (error) {
+            return res.status(500).json({ message: error.message });
+        }
+    },
+    deleteMessage: async (req, res) => {
+        try {
+            const { messageId } = req.params;
+            const message = await Message.findById(messageId);
+            if (!message) {
+                return res.status(404).json({ message: 'Message not found' });
+            }
+            await message.remove();
+            return res.status(200).json({ message: 'Message deleted' });
         } catch (error) {
             return res.status(500).json({ message: error.message });
         }
