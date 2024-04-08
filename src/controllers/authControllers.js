@@ -145,7 +145,6 @@ const userControllers = {
                     const { expiresAt } = userOtpRecords[0];
                     const hashOTP = userOtpRecords[0].otp;
 
-                    //bug to đùng
                     if (expiresAt > Date.now()) {
                         await UserOtp.deleteMany({ userId });
                         console.log('expired');
@@ -219,7 +218,7 @@ const sendOtp = async (user, res) => {
             userId: user._id.toString(),
             otp: hashOTP,
             createdAt: new Date(),
-            expiresAt: new Date() + 36000000,
+            expiresAt: new Date() + 3000000,
         });
 
         await newUserOTP.save();
