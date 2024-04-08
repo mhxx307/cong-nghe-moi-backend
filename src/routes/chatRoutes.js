@@ -11,5 +11,6 @@ router.get(
 );
 router.get('/getAllRoomByUserId/:userId', chatControllers.getAllRoomByUserId);
 router.post('/inviteToGroupChat', chatControllers.inviteToGroupChat);
+router.delete('/deleteMessage/:messageId', chatControllers.deleteMessage);
 
 module.exports = router;

@@ -164,9 +164,20 @@ const userControllers = {
                                 { verify: true },
                             );
                             await UserOtp.deleteMany({ userId });
+                            const user = await User.findById(userId)
+                                .populate(
+                                    'friendRequestsReceived',
+                                    'username profilePic',
+                                )
+                                .populate(
+                                    'friendRequests',
+                                    'username profilePic',
+                                )
+                                .populate('friends', 'username profilePic');
                             res.json({
                                 status: 'SUCCESS',
                                 message: 'OTP verified successfully',
+                                user: user,
                             });
                         } else {
                             throw Error('Invalid OTP');
