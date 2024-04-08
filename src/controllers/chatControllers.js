@@ -85,6 +85,13 @@ const chatControllers = {
                         path: 'members',
                         select: 'username profilePic', // Populate the 'members' field in the 'room' model with the 'username' and 'profilePic' fields
                     },
+                })
+                .populate({
+                    path: 'replyTo',
+                    populate: {
+                        path: 'sender',
+                        select: 'username profilePic',
+                    },
                 });
 
             console.log('Messages:', messages);
@@ -142,7 +149,14 @@ const chatControllers = {
             const populatedMessage = await Message.findById(messageSaved._id)
                 .populate('sender', 'username profilePic')
                 .populate('receiver', 'username profilePic')
-                .populate('room', 'members');
+                .populate('room', 'members')
+                .populate({
+                    path: 'replyTo',
+                    populate: {
+                        path: 'sender',
+                        select: 'username profilePic',
+                    },
+                });
 
             await updateChatroomLastMessage(roomId, messageSaved.timestamp);
 
@@ -158,7 +172,7 @@ const chatControllers = {
             if (!message) {
                 return res.status(404).json({ message: 'Message not found' });
             }
-            await message.remove();
+            await Message.deleteOne({ _id: messageId });
             return res.status(200).json({ message: 'Message deleted' });
         } catch (error) {
             return res.status(500).json({ message: error.message });
