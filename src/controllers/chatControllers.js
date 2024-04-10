@@ -93,8 +93,6 @@ const chatControllers = {
                         select: 'username profilePic',
                     },
                 });
-
-            console.log('Messages:', messages);
             return res.status(200).json(messages);
         } catch (error) {
             return res.status(500).json({ message: error.message });
