@@ -1,5 +1,5 @@
 const Chatroom = require('../models/chatroom');
-const Message = require('../models/Message');
+const Message = require('../models/message');
 
 const chatControllers = {
     createChatRoom: async (req, res) => {
