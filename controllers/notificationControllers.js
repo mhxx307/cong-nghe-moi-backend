@@ -1,4 +1,4 @@
-const Notification = require('../models/Notification');
+const Notification = require('../models/notification');
 
 const notificationControllers = {
     sendNotification: async ({ senderId, receiverId, type, message }) => {
