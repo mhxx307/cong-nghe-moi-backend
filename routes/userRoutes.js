@@ -9,6 +9,7 @@ router.get('/search/s', userController.getUsersByNameAndPhoneNumberAndEmail);
 router.put('/change-password/:id', userController.changePassword);
 router.post('/sendFriendRequest', userController.sendFriendRequest);
 router.post('/acceptFriendRequest', userController.acceptFriendRequest);
+router.post('/rejectedFriendRequest', userController.rejectedFriendRequest);
 router.get('/getFriendList/:userId', userController.getFriendList);
 router.get('/getFriendRequestList/:userId', userController.getFriendRequests);
 router.get(
