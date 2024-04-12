@@ -85,8 +85,8 @@ const userControllers = {
             const sender = await User.findById(senderId);
             const receiver = await User.findById(receiverId);
 
-            console.log('Sender:', sender);
-            console.log('Receiver:', receiver);
+            // console.log('Sender:', sender);
+            // console.log('Receiver:', receiver);
 
             if (!sender || !receiver) {
                 throw new Error('Sender or receiver not found');
@@ -203,8 +203,14 @@ const userControllers = {
     rejectedFriendRequest: async (req, res) => {
         try {
             const { userId, requesterId } = req.body;
+            console.log('userId:', userId);
+            console.log('requesterId:', requesterId);
             const user = await User.findById(userId);
             const requester = await User.findById(requesterId);
+
+            console.log('User:', user);
+            console.log('Requester:', requester);
+
             if (!user || !requester) {
                 return res
                     .status(400)
@@ -212,17 +218,23 @@ const userControllers = {
             }
 
             // Check if friend request exists
-            if (!user.friendRequests.includes(requesterId)) {
+            if (!user.friendRequestsReceived.includes(requesterId)) {
                 return res
                     .status(400)
                     .json({ message: 'Friend request not found' });
             }
 
             // Remove friend request
-            user.friendRequests = user.friendRequests.filter(
+            user.friendRequestsReceived = user.friendRequestsReceived.filter(
                 (id) => id.toString() !== requesterId.toString(),
             );
             await user.save();
+
+            // Remove friend requests from requester
+            requester.friendRequests = requester.friendRequests.filter(
+                (id) => id.toString() !== userId.toString(),
+            );
+            await requester.save();
 
             // add notification to requester
             await notificationControllers.sendNotification({
