@@ -92,7 +92,10 @@ io.on('connection', (socket) => {
         console.log('Caller socket:', callerSocket);
         if (callerSocket) {
             // Emit call accepted event to the caller
-            io.to(callerSocket.socketId).emit('call-accepted', { recipient });
+            io.to(callerSocket.socketId).emit('call-accepted', {
+                recipient,
+                caller,
+            });
         }
     });
 
