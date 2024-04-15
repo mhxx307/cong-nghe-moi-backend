@@ -176,6 +176,56 @@ const chatControllers = {
             return res.status(500).json({ message: error.message });
         }
     },
+    updateChatGroup: async (req, res) => {
+        try {
+            const { chatroomId, name, image, members, adminId, newAdminId } =
+                req.body;
+            const chatroom = await Chatroom.findById(chatroomId);
+            if (!chatroom) {
+                return res.status(404).json({ message: 'Chatroom not found' });
+            }
+            if (chatroom.admin.toString() !== adminId) {
+                return res.status(403).json({
+                    message: 'Only admin can update chatroom',
+                });
+            }
+            chatroom.name = name;
+            chatroom.image = image;
+            chatroom.members = members;
+
+            if (newAdminId) {
+                chatroom.admin = newAdminId;
+            }
+
+            const savedChatroom = await chatroom.save();
+            const populatedChatroom = await Chatroom.findById(savedChatroom._id)
+                .populate('members', 'username profilePic')
+                .populate('admin', 'username profilePic');
+
+            return res.status(200).json(populatedChatroom);
+        } catch (error) {
+            return res.status(500).json({ message: error.message });
+        }
+    },
+    removeChatroom: async (req, res) => {
+        try {
+            const { chatroomId, admin } = req.body;
+            const chatroom = await Chatroom.findById(chatroomId);
+            if (!chatroom) {
+                return res.status(404).json({ message: 'Chatroom not found' });
+            }
+            if (chatroom.admin.toString() !== admin) {
+                return res.status(403).json({
+                    message: 'Only admin can remove chatroom',
+                });
+            }
+            await Chatroom.deleteOne({ _id: chatroomId });
+
+            return res.status(200).json({ message: 'Chatroom removed' });
+        } catch (error) {
+            return res.status(500).json({ message: error.message });
+        }
+    },
 };
 
 async function updateChatroomLastMessage(chatroomId, timestamp) {

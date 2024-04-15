@@ -16,5 +16,6 @@ router.get(
     '/getFriendRequestsReceived/:userId',
     userController.getFriendRequestsReceived,
 );
+router.post('/unfriend', userController.unfriend);
 
 module.exports = router;

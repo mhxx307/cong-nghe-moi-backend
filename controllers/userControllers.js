@@ -263,6 +263,27 @@ const userControllers = {
             return res.status(500).json({ message: error.message });
         }
     },
+    unfriend: async (req, res) => {
+        try {
+            const { userId, friendId } = req.body;
+            const user = await User.findById(userId);
+            const friend = await User.findById(friendId);
+
+            user.friends = user.friends.filter(
+                (id) => id.toString() !== friendId.toString(),
+            );
+            friend.friends = friend.friends.filter(
+                (id) => id.toString() !== userId.toString(),
+            );
+
+            await user.save();
+            await friend.save();
+
+            return res.status(200).json({ user: user, friend: friend });
+        } catch (error) {
+            return res.status(500).json({ message: error.message });
+        }
+    },
 };
 
 module.exports = userControllers;

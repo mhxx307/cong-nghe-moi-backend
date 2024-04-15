@@ -45,6 +45,20 @@ io.on('connection', (socket) => {
         console.log('Received sort room event:', data);
         socket.broadcast.emit('sorted-room', data);
     });
+
+    socket.on('delete-message', (data) => {
+        console.log('Received delete message event:', data);
+        socket.broadcast.emit('deleted-message', data);
+    });
+
+    socket.on('update-group', (data) => {
+        console.log('Received update group event:', data);
+        socket.broadcast.emit('updated-group', data);
+    });
+
+    socket.on('disconnect', () => {
+        console.log('A user disconnected:', socket.id);
+    });
 });
 
 initRouter(app);
