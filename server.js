@@ -58,6 +58,11 @@ io.on('connection', (socket) => {
         socket.broadcast.emit('updated-group', data);
     });
 
+    socket.on('leave-group', (data) => {
+        console.log('Received leave group event:', data);
+        socket.broadcast.emit('left-group', data);
+    });
+
     // call video
     socket.on('join', ({ userId }) => {
         console.log('User joined:', userId);
