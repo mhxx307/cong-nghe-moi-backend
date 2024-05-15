@@ -32,6 +32,10 @@ const messageSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Message', // Reference to the parent message
     },
+    from: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User', // Reference to the parent message
+    },
 });
 
 const Message = mongoose.model('Message', messageSchema);

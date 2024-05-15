@@ -92,7 +92,9 @@ const chatControllers = {
                         path: 'sender',
                         select: 'username profilePic',
                     },
-                });
+                })
+                .populate('from', 'username profilePic');
+
             return res.status(200).json(messages);
         } catch (error) {
             return res.status(500).json({ message: error.message });
@@ -133,8 +135,16 @@ const chatControllers = {
     },
     sendMessage: async (req, res) => {
         try {
-            const { senderId, receiverId, content, images, roomId, replyTo } =
-                req.body;
+            const {
+                senderId,
+                receiverId,
+                content,
+                images,
+                roomId,
+                replyTo,
+                from,
+            } = req.body;
+            console.log('from', req.body.from);
             const message = new Message({
                 sender: senderId,
                 receiver: receiverId,
@@ -142,6 +152,7 @@ const chatControllers = {
                 images,
                 room: roomId,
                 replyTo,
+                from,
             });
             const messageSaved = await message.save();
             const populatedMessage = await Message.findById(messageSaved._id)
@@ -154,7 +165,9 @@ const chatControllers = {
                         path: 'sender',
                         select: 'username profilePic',
                     },
-                });
+                })
+                .populate('from', 'username profilePic');
+            console.log('populatedMessage', populatedMessage);
 
             await updateChatroomLastMessage(roomId, messageSaved.timestamp);
 
