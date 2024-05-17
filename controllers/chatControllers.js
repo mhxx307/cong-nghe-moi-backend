@@ -1,5 +1,6 @@
 const Chatroom = require('../models/chatroom');
 const Message = require('../models/message');
+const User = require('../models/user');
 
 const chatControllers = {
     createChatRoom: async (req, res) => {
@@ -144,7 +145,29 @@ const chatControllers = {
                 replyTo,
                 from,
             } = req.body;
-            console.log('from', req.body.from);
+
+            // check is friend
+            const chatRoom = await Chatroom.findById(roomId);
+            if (!chatRoom) {
+                return res.status(404).json({ message: 'Chatroom not found' });
+            }
+
+            if (!chatRoom.members.includes(senderId)) {
+                return res.status(403).json({
+                    message: 'You are not a member of this chatroom',
+                });
+            }
+
+            if (chatRoom.type === '1v1') {
+                const sender = await User.findById(senderId);
+
+                if (!sender.friends.includes(receiverId)) {
+                    return res.status(403).json({
+                        message: 'You can only send message to your friend',
+                    });
+                }
+            }
+
             const message = new Message({
                 sender: senderId,
                 receiver: receiverId,
