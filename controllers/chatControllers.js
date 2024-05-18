@@ -159,16 +159,6 @@ const chatControllers = {
                 });
             }
 
-            if (chatRoom.type === '1v1') {
-                const sender = await User.findById(senderId);
-
-                if (!sender.friends.includes(receiverId)) {
-                    return res.status(403).json({
-                        message: 'You can only send message to your friend',
-                    });
-                }
-            }
-
             const message = new Message({
                 sender: senderId,
                 receiver: receiverId,
