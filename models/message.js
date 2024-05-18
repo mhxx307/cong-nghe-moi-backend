@@ -36,6 +36,9 @@ const messageSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User', // Reference to the parent message
     },
+    file: {
+        type: String, // You can store the URLs of the files
+    },
 });
 
 const Message = mongoose.model('Message', messageSchema);

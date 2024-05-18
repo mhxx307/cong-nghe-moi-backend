@@ -144,6 +144,7 @@ const chatControllers = {
                 roomId,
                 replyTo,
                 from,
+                file,
             } = req.body;
 
             // check is friend
@@ -176,6 +177,7 @@ const chatControllers = {
                 room: roomId,
                 replyTo,
                 from,
+                file,
             });
             const messageSaved = await message.save();
             const populatedMessage = await Message.findById(messageSaved._id)
