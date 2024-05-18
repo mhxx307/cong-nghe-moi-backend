@@ -104,6 +104,18 @@ io.on('connection', (socket) => {
         }
     });
 
+    socket.on('reject-call', ({ caller, recipient }) => {
+        console.log('Rejected call from:', caller);
+        console.log('Recipient:', recipient);
+        // Find caller's socket ID based on their user ID
+        const callerSocket = users.find((user) => user.userId === caller._id);
+        console.log('Caller socket:', callerSocket);
+        if (callerSocket) {
+            // Emit call rejected event to the caller
+            io.to(callerSocket.socketId).emit('call-rejected');
+        }
+    });
+
     socket.on('disconnect', () => {
         console.log('A user disconnected:', socket.id);
     });
