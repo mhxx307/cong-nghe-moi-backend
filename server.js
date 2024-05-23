@@ -6,6 +6,7 @@ const initRouter = require('./configs/routerConfig');
 const connectDatabase = require('./configs/connectDatabase');
 const { Server } = require('socket.io');
 const http = require('http');
+const User = require('./models/user');
 
 app.use(cors());
 app.use(express.json());
@@ -17,7 +18,17 @@ const io = new Server(server, {
     },
 });
 
-const users = [];
+let users = [];
+
+const fetchUsers = async () => {
+    const allUsers = await User.find();
+    users = allUsers.map((user) => ({
+        userId: user._id,
+        socketId: null,
+    }));
+};
+
+fetchUsers();
 
 io.on('connection', (socket) => {
     console.log('A user connected: ', socket.id);
@@ -61,6 +72,11 @@ io.on('connection', (socket) => {
     socket.on('leave-group', (data) => {
         console.log('Received leave group event:', data);
         socket.broadcast.emit('left-group', data);
+    });
+
+    socket.on('unfriend', (data) => {
+        console.log('Received unfriend event:', data);
+        socket.broadcast.emit('unfriended', data);
     });
 
     // call video
