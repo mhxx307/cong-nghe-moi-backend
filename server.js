@@ -6,7 +6,6 @@ const initRouter = require('./configs/routerConfig');
 const connectDatabase = require('./configs/connectDatabase');
 const { Server } = require('socket.io');
 const http = require('http');
-const User = require('./models/user');
 
 app.use(cors());
 app.use(express.json());
