@@ -20,16 +20,6 @@ const io = new Server(server, {
 
 let users = [];
 
-const fetchUsers = async () => {
-    const allUsers = await User.find();
-    users = allUsers.map((user) => ({
-        userId: user._id,
-        socketId: null,
-    }));
-};
-
-fetchUsers();
-
 io.on('connection', (socket) => {
     console.log('A user connected: ', socket.id);
     // Additional socket event listeners and handling can be added here
