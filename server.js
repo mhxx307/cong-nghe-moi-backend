@@ -6,6 +6,7 @@ const initRouter = require('./configs/routerConfig');
 const connectDatabase = require('./configs/connectDatabase');
 const { Server } = require('socket.io');
 const http = require('http');
+const User = require('./models/user');
 
 app.use(cors());
 app.use(express.json());
@@ -18,6 +19,16 @@ const io = new Server(server, {
 });
 
 let users = [];
+
+const fetchUsers = async () => {
+    const allUsers = await User.find();
+    users = allUsers.map((user) => ({
+        userId: user._id,
+        socketId: null,
+    }));
+};
+
+fetchUsers();
 
 io.on('connection', (socket) => {
     console.log('A user connected: ', socket.id);
